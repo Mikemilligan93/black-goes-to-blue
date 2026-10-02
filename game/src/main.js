@@ -1,5 +1,6 @@
 // Entry point. For now: a scaled canvas showing the title from texts.js.
 (function () {
+  if (!window.checkDataFiles()) return;
   var canvas = document.getElementById('game');
   var ctx = canvas.getContext('2d');
   var W = CONFIG.width, H = CONFIG.height;
