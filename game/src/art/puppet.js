@@ -23,7 +23,7 @@ Art.PUPPET = {
            fist:    { wrist: [22, 80], dir: 0 },
            open:    { wrist: [110, 288], dir: -Math.PI / 2 } },
   shoe:  { scale: 0.58, ankle: [80, 30], sole: 160 },
-  leg:   { len: 50, width: 24, cuff: 28, spread: 7 },
+  leg:   { len: 52, width: 15, cuff: 18, spread: 3.5, top: 6 },  // top: how far the legs start up inside the trousers
   arm:   { len: 46, width: 12, sleeve: 0.55 },
 };
 
@@ -122,15 +122,15 @@ Art.PUPPET_PARTS = ['body_torso', 'body_glove_relaxed', 'body_glove_fist', 'body
       else if (hurt) { ax = hx - 4 + i * 10; ay = -ankleH - 2; tilt = -0.1; }
       else if (attack) { ax = hx + (i ? 15 : -13); ay = -ankleH; }
       else { ax = hx + (i ? 6 : -4); ay = -ankleH; }
-      legs.push({ L: limb(hx, hip.y, ax, ay, P.leg.len, -1), tilt: tilt });
+      legs.push({ L: limb(hx, hip.y - P.leg.top, ax, ay, P.leg.len + P.leg.top, -1), tilt: tilt });
     }
 
     // ---- arms ----
-    var roots = [{ x: sh.x - 5, y: sh.y - 1 }, { x: sh.x, y: sh.y }], arms = [], AL = P.arm.len;
+    var roots = [{ x: sh.x + 4, y: sh.y + 1 }, { x: sh.x, y: sh.y }], arms = [], AL = P.arm.len;
     for (var j = 0; j < 2; j++) {
       var r = roots[j], hx2, hy2, glove = 'relaxed', b = ph + j * Math.PI + Math.PI;
       if (pose === 'walk') { hx2 = r.x + Math.sin(b) * (11 + m * 7); hy2 = r.y + AL * 0.9 + slump * 4 - Math.abs(Math.cos(b)) * 2; }
-      else if (pose === 'jump') { glove = 'open'; hx2 = r.x + (vy < 0 ? (j ? 30 : -20) : (j ? 30 : -22)); hy2 = vy < 0 ? r.y - AL * (j ? 0.35 : 0.55) : r.y + 2; }
+      else if (pose === 'jump') { glove = 'open'; if (j) { hx2 = r.x + 32; hy2 = r.y + AL * 0.35; } else { hx2 = r.x - 20; hy2 = vy < 0 ? r.y - AL * 0.55 : r.y + 2; } }  // front hand forward and low, clear of the face
       else if (hurt) { glove = 'open'; hx2 = r.x + (j ? 30 : -26); hy2 = r.y - AL * (j ? 0.2 : 0.45) + Math.sin(t * 30) * 3; }
       else if (attack) { if (j) { glove = 'fist'; hx2 = r.x + AL * 0.98; hy2 = r.y + 6; } else { hx2 = r.x - 10; hy2 = r.y + AL * 0.7; } }
       else { hx2 = r.x + (j ? 4 : -2) + breathe; hy2 = r.y + AL * 0.92 + slump * 5; }
@@ -145,10 +145,10 @@ Art.PUPPET_PARTS = ['body_torso', 'body_glove_relaxed', 'body_glove_fist', 'body
     // ---- draw: back arm, legs + shoes, torso, head, front arm ----
     arm(ctx, arms[0].L, P, arms[0].glove, 0.86);
     for (var q = 0; q < 2; q++) {
-      leg(ctx, legs[q].L, P, q === 0 ? 0.86 : 1);
       ctx.save(); ctx.translate(legs[q].L.b[0], legs[q].L.b[1]); ctx.rotate(legs[q].tilt);
       Art.drawPainted(ctx, 'body_shoe', P.shoe.ankle[0], P.shoe.ankle[1], shoeS);
       ctx.restore();
+      leg(ctx, legs[q].L, P, q === 0 ? 0.86 : 1);  // trouser cuff covers the top of the shoe
     }
     ctx.save(); ctx.translate(hip.x, hip.y); ctx.rotate(lean);
     Art.drawPainted(ctx, 'body_torso', P.torso.hip[0], P.torso.hip[1], ts);
