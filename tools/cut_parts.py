@@ -19,7 +19,7 @@ def key_green(rgb):
     # fully background above 90, fully foreground below 35, soft in between
     alpha = np.clip((90 - greenness) / 55, 0, 1)
     # despill: pull leftover green on soft edges down to the other channels
-    g2 = np.where(greenness > 0, np.minimum(g, other + 8), g)
+    g2 = np.where(greenness > -10, np.minimum(g, other), g)  # remove green fringe on outlines
     out = np.dstack([r, g2, b, alpha * 255]).astype(np.uint8)
     return out, alpha > 0.5
 

@@ -34,6 +34,13 @@ Art.PAL = {
   plantDark:  ['#4F8433', 'green'],
   pot:        ['#C8623B', 'red'],
   sky:        ['#8DB8DE', 'blue'],
+  // player puppet (sampled from the Nano Banana parts)
+  pInk:       ['#2A1E16', null],
+  pDenim:     ['#5F86A8', 'blue'],
+  pDenimCuff: ['#86A7C2', 'blue'],
+  pSleeve:    ['#F4D9A6', 'peach'],
+  pSleeveCuff:['#FBE6BE', 'peach'],
+  pSkin:      ['#F6C27B', 'peach'],
 };
 
 // How much colour each group has (0..1). The game changes these.

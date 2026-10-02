@@ -31,6 +31,7 @@
   window.addEventListener('keydown', function (e) {
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].indexOf(e.key) >= 0 && document.activeElement === play) e.preventDefault();
     keys[e.key.toLowerCase()] = true;
+    if (e.key.toLowerCase() === 'x' && p.attack <= 0 && p.hurt <= 0) p.attack = 0.28;
     if (e.key.toLowerCase() === 'h' && p.hurt <= 0) { p.hurt = 0.6; p.vy = -420; p.vx = -p.facing * 260; p.ground = false; }
   });
   window.addEventListener('keyup', function (e) { keys[e.key.toLowerCase()] = false; });
@@ -38,12 +39,13 @@
 
   // ---------------- Player physics (prototype) ----------------
   var FLOOR = 410;
-  var p = { x: 640, y: FLOOR, vx: 0, vy: 0, facing: 1, ground: true, phase: 0, hurt: 0, jumpHeld: false };
+  var p = { x: 640, y: FLOOR, vx: 0, vy: 0, facing: 1, ground: true, phase: 0, hurt: 0, attack: 0, jumpHeld: false };
 
   function update(dt, mood) {
     var left = keys['arrowleft'] || keys['a'], right = keys['arrowright'] || keys['d'];
     var jump = keys[' '] || keys['w'] || keys['arrowup'];
     var max = 240 + mood * 80;
+    if (p.attack > 0) p.attack -= dt;
     if (p.hurt > 0) { p.hurt -= dt; }
     else {
       var dir = (right ? 1 : 0) - (left ? 1 : 0);
@@ -62,18 +64,11 @@
   }
 
   // ---------------- World (placeholder, drawn in code) ----------------
-  // If Bence has saved images/level1_bg.png, use it instead of the placeholder room.
-  // (Temporary: greys the whole image by the average colour level; per-colour return comes in step 4.)
-  var bg = new Image(), bgReady = false;
-  bg.onload = function () { bgReady = true; };
-  bg.src = 'images/level1_bg.png';
-
   function world(ctx, t) {
-    if (bgReady) {
-      var avg = groups.reduce(function (s, g) { return s + Art.levels[g]; }, 0) / groups.length;
-      var h = 1280 * bg.height / bg.width;
-      ctx.save(); ctx.filter = 'grayscale(' + (1 - avg) + ') sepia(' + (0.15 * (1 - avg)) + ')';
-      ctx.drawImage(bg, 0, 480 - h, 1280, h);
+    if (Art.hasPainted('level1_bg')) {   // Nano Banana background with per-colour return
+      var sc = 1280 / ART_MANIFEST.level1_bg.w;
+      ctx.save(); ctx.translate(0, 480 - ART_MANIFEST.level1_bg.h * sc);
+      Art.drawPainted(ctx, 'level1_bg', 0, 0, sc);
       ctx.restore();
       return;
     }
@@ -161,22 +156,20 @@
   var lineup = document.getElementById('lineup'), lctx = lineup.getContext('2d');
   function drawLineup(t) {
     lctx.fillStyle = Art.PAL.paper[0]; lctx.fillRect(0, 0, 1280, 350);
-    var saved = Object.assign({}, Art.levels);
-    var poses = ['idle', 'walk', 'jump', 'hurt'];
+    var poses = ['idle', 'walk', 'jump', 'hurt', 'attack'];
     [0, 1].forEach(function (side) {
-      groups.forEach(function (g) { Art.levels[g] = side; });
-      lctx.fillStyle = INK; lctx.font = '700 22px "Old Standard TT", serif'; lctx.textAlign = 'center';
+      var lv = {}; groups.forEach(function (g) { lv[g] = side; }); Art.levelsOverride = lv;
+      lctx.fillStyle = INK; lctx.font = '700 22px "Playfair Display", serif'; lctx.textAlign = 'center';
       lctx.fillText(side ? 'Recovered (all colour, mood 1)' : 'Burnt out (grey, mood 0)', 320 + side * 640, 34);
       poses.forEach(function (pose, i) {
-        var x = 100 + side * 640 + i * 148, vy = pose === 'jump' ? Math.sin(t * 2.5) * 900 : 0;
-        Art.drawPlayer(lctx, x, pose === 'jump' ? 285 : 305,
-          { pose: pose, t: t, phase: t * 9, vy: vy, facing: 1, mood: side });
-        lctx.font = '16px "Old Standard TT", serif'; lctx.fillStyle = '#6E6A62';
+        var x = 76 + side * 640 + i * 122, vy = pose === 'jump' ? Math.sin(t * 2.5) * 900 : 0;
+        Art.drawPuppet(lctx, x, pose === 'jump' ? 285 : 305, { pose: pose, t: t, phase: t * 9, vy: vy, facing: 1, mood: side });
+        lctx.font = '16px "Playfair Display", serif'; lctx.fillStyle = '#6E6A62';
         lctx.fillText(pose, x, 338);
       });
     });
+    Art.levelsOverride = null;
     lctx.fillStyle = INK; lctx.fillRect(639, 50, 2, 290);
-    Object.assign(Art.levels, saved);
   }
 
   // ---------------- Palette ----------------
@@ -219,11 +212,11 @@
 
     update(dt, mood);
     world(ctx, t);
-    var pose = p.hurt > 0 ? 'hurt' : !p.ground ? 'jump' : Math.abs(p.vx) > 20 ? 'walk' : 'idle';
-    Art.drawPlayer(ctx, p.x, p.y, { pose: pose, t: t, phase: p.phase, vy: p.vy, facing: p.facing, mood: mood });
+    var pose = p.hurt > 0 ? 'hurt' : p.attack > 0 ? 'attack' : !p.ground ? 'jump' : Math.abs(p.vx) > 20 ? 'walk' : 'idle';
+    Art.drawPuppet(ctx, p.x, p.y, { pose: pose, t: t, phase: p.phase, vy: p.vy, facing: p.facing, mood: mood });
     if (filmEl.checked) film(ctx, 1280, 480, t);
     drawLineup(t);
     requestAnimationFrame(frame);
   }
-  requestAnimationFrame(frame);
+  Art.loadPainted(Art.PUPPET_PARTS.concat(['level1_bg']), function () { requestAnimationFrame(frame); });
 })();
