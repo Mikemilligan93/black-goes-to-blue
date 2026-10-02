@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Style Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Rye&family=Bungee+Shade&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#1B1A17; --paper:#EFE8D8; --muted:#6E6A62; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 "Old Standard TT", Georgia, serif; }
+  main { max-width:1320px; margin:0 auto; padding:24px 20px 60px; }
+  h1 { font:400 44px Limelight, serif; margin:0 0 4px; }
+  h2 { font:700 24px "Old Standard TT", serif; margin:40px 0 8px; border-bottom:2px solid var(--ink); padding-bottom:4px; }
+  .note { color:var(--muted); margin:0 0 12px; }
+  canvas { width:100%; height:auto; display:block; border:3px solid var(--ink); border-radius:6px; background:#000; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; margin:12px 0; }
+  button { font:inherit; border:2px solid var(--ink); background:#fff; border-radius:20px; padding:4px 14px; cursor:pointer; }
+  button.on { color:#fff; }
+  label { display:flex; align-items:center; gap:6px; }
+  .keys { font-size:14px; color:var(--muted); }
+  .swatches { display:flex; flex-wrap:wrap; gap:12px; }
+  .sw { width:150px; border:2px solid var(--ink); border-radius:6px; overflow:hidden; background:#fff; font-size:14px; }
+  .sw div { height:60px; display:flex; }
+  .sw div span { flex:1; }
+  .sw p { margin:0; padding:6px 8px; }
+  .font { border:2px solid var(--ink); border-radius:6px; background:#fff; padding:14px 18px; margin-bottom:12px; }
+  .font .tag { font:13px monospace; color:var(--muted); }
+  .font .big { font-size:52px; line-height:1.15; }
+  .font .mid { font-size:28px; }
+  .font .body { font-size:20px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Style Test</h1>
+  <p class="note">Step 3 of the roadmap: the character, the colour return, the palette and the font candidates. Nothing here is final.</p>
+
+  <h2>1. Playground</h2>
+  <p class="keys">Arrows or A/D: walk · Space or W: jump (hold for higher) · H: hurt · click the canvas first</p>
+  <canvas id="play" width="1280" height="480" tabindex="0"></canvas>
+  <div class="controls" id="groupButtons"></div>
+  <div class="controls">
+    <label>Mood (posture) <input id="mood" type="range" min="0" max="1" step="0.01" value="0"></label>
+    <label><input id="link" type="checkbox" checked> Mood follows colours restored</label>
+    <label><input id="film" type="checkbox" checked> Old film effect</label>
+    <button id="allGrey">All grey</button>
+    <button id="allColour">All colour</button>
+  </div>
+
+  <h2>2. Poses: burnt out vs recovered</h2>
+  <canvas id="lineup" width="1280" height="350"></canvas>
+
+  <h2>3. Palette</h2>
+  <p class="note">Each defeated boss restores one colour group: left half shows it grey, right half in colour. Which boss gives which colour is decided in the boss workshop.</p>
+  <div class="swatches" id="swatches"></div>
+
+  <h2>4. Font candidates</h2>
+  <p class="note">Pick one title font and one body font.</p>
+  <div id="fonts"></div>
+</main>
+
+<script src="src/art/palette.js"></script>
+<script src="src/art/player.js"></script>
+<script src="src/styletest.js"></script>
+</body>
+</html>

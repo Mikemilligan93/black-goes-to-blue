@@ -10,7 +10,7 @@
 window.TEXT = {
 
   // --- Title screen ---
-  GAME_TITLE:    "Rubber-Hose Recovery",
+  GAME_TITLE:    "Black goes to Blue",
   PRESS_START:   "Press Space to begin",
 
   // --- General ---
