@@ -36,3 +36,53 @@ Same proportions and clothes in all three. No text, no labels, no logos, no othe
 - Feels rubber-hose: big head, round shapes, bendy limbs, gloves, big shoes
 - Original: it must not look like any existing cartoon character
 - Face expressions you like in all three states
+
+---
+
+## Round 2: parts (attach `char_design.png` as the reference image for every prompt)
+
+All parts are painted on a **flat bright green background** so the game can cut them out.
+The character has no green on it, so nothing else gets removed by mistake.
+
+Check before saving:
+
+- the background is one even green: no paper texture, no shadows, no gradient
+- parts don't touch or overlap each other, and nothing is cut off at the image edge
+- the style matches the reference: same ink lines, same watercolour shading, same colours
+
+If one part is wrong, ask Nano Banana to fix just that part instead of regenerating.
+
+### 2a. Heads → save as `char_heads.png`
+
+```
+Using the attached character as the exact reference (same face, hair, colours, ink lines and watercolour style), draw ONLY the character's head, eight times, arranged in a neat grid of 4 columns and 2 rows with plenty of empty space between them. Every head is the same size, seen from the same side angle facing right exactly as in the reference, cut off cleanly just below the chin with no neck, no body and no hands.
+
+Expressions, left to right, top row first:
+1. burnt out: heavy drooping eyelids, dark circles under the eyes, small frown, messy hair
+2. burnt out with eyes fully closed, tired sigh, messy hair
+3. neutral, calm, tidy hair
+4. neutral with eyes fully closed (blinking), tidy hair
+5. happy: big open smile, bright eyes, tidy hair
+6. determined: focused eyebrows, confident grin, tidy hair
+7. hurt: eyes squeezed shut, mouth open in an "ouch"
+8. surprised: wide eyes, small round open mouth
+
+Background: perfectly flat solid bright green (#00FF00), no texture, no shadows, no gradient. No text, no numbers, no labels.
+```
+
+### 2b. Body, hands and shoe → save as `char_body.png`
+
+```
+Using the attached character as the exact reference (same clothes, colours, ink lines and watercolour style), draw these separate parts, spread out with plenty of empty space between them, nothing touching:
+
+1. the torso only, side view facing right, standing straight: collared shirt collar, brick-red sweater vest, brown belt, the top of the blue trousers just below the belt, and the lanyard with the gold badge hanging in front. No head, no neck, no arms, no hands, no legs.
+2. a white cartoon glove, relaxed and open, hanging down: wrist cuff at the top, fingers pointing down.
+3. a white cartoon glove making a fist, wrist cuff on the left, knuckles pointing right.
+4. a white cartoon glove wide open with fingers spread, wrist cuff at the bottom, fingers pointing up.
+5. one brown shoe, side view facing right, flat on the ground, with no leg.
+
+Background: perfectly flat solid bright green (#00FF00), no texture, no shadows, no gradient. No text, no numbers, no labels.
+```
+
+The arms, legs and rolled-up cuffs are drawn by the game in code, using colours and texture
+sampled from these images, so they bend like rubber hoses and match the painted parts.
