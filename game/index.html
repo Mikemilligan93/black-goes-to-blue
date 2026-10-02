@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rubber-Hose Recovery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Temporary fonts until we pick them in the style test -->
+  <link href="https://fonts.googleapis.com/css2?family=Limelight&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
+    body { display: flex; align-items: center; justify-content: center; }
+    canvas { display: block; image-rendering: auto; }
+    #error { display: none; position: fixed; inset: 0; padding: 40px; background: #2a1a1a; color: #ffdede;
+             font: 18px/1.5 monospace; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="1280" height="720"></canvas>
+  <div id="error"></div>
+
+  <!-- Error catcher first, so a typo in a data file shows a clear message -->
+  <script src="src/errors.js"></script>
+
+  <!-- Content (safe to edit) -->
+  <script src="texts.js"></script>
+  <script src="quotes.js"></script>
+  <script src="config.js"></script>
+  <script src="bosses.js"></script>
+
+  <!-- Engine -->
+  <script src="src/main.js"></script>
+</body>
+</html>
