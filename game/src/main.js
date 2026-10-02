@@ -27,10 +27,10 @@
     ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = '#1a1a1a';
     ctx.textAlign = 'center';
-    ctx.font = '96px Limelight, serif';
+    ctx.font = '84px "Bungee Shade", serif';
     ctx.fillText(TEXT.GAME_TITLE, W / 2, H / 2 - 20);
     if (Math.floor(t / 600) % 2 === 0) {
-      ctx.font = '32px "Old Standard TT", serif';
+      ctx.font = '32px "Playfair Display", serif';
       ctx.fillText(TEXT.PRESS_START, W / 2, H / 2 + 60);
     }
     requestAnimationFrame(draw);
