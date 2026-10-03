@@ -156,6 +156,91 @@ window.ART_MANIFEST = {
   ],
   "chin": 282
  },
+ "props_boxes": {
+  "w": 220,
+  "h": 380,
+  "groups": [
+   "red",
+   "peach",
+   "gold"
+  ]
+ },
+ "props_cabinet": {
+  "w": 216,
+  "h": 516,
+  "groups": [
+   "peach",
+   "teal"
+  ]
+ },
+ "props_coffee": {
+  "w": 464,
+  "h": 200,
+  "groups": [
+   "red",
+   "peach",
+   "gold"
+  ]
+ },
+ "props_cooler": {
+  "w": 204,
+  "h": 540,
+  "groups": [
+   "red",
+   "peach",
+   "gold",
+   "teal",
+   "blue"
+  ]
+ },
+ "props_desk": {
+  "w": 576,
+  "h": 328,
+  "groups": [
+   "red",
+   "peach",
+   "gold"
+  ]
+ },
+ "props_envelope": {
+  "w": 416,
+  "h": 292,
+  "groups": [
+   "red",
+   "peach",
+   "gold"
+  ]
+ },
+ "props_envelope_hit": {
+  "w": 432,
+  "h": 216,
+  "groups": [
+   "peach",
+   "gold"
+  ]
+ },
+ "props_papers": {
+  "w": 432,
+  "h": 452,
+  "groups": [
+   "red",
+   "peach",
+   "gold",
+   "teal",
+   "blue"
+  ]
+ },
+ "props_shelf": {
+  "w": 352,
+  "h": 344,
+  "groups": [
+   "red",
+   "peach",
+   "gold",
+   "teal",
+   "blue"
+  ]
+ },
  "level1_bg": {
   "w": 1672,
   "h": 941,

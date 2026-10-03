@@ -69,12 +69,14 @@ def merge_close(boxes, gap=12):
     return boxes
 
 def reading_order(boxes):
-    boxes = sorted(boxes, key=lambda b: (b[1]+b[3])/2)
-    rows, med = [], np.median([b[3]-b[1] for b in boxes])
+    # boxes that overlap vertically belong to the same row, even if their heights differ a lot
+    boxes = sorted(boxes, key=lambda b: b[1])
+    rows = []
     for b in boxes:
-        cy = (b[1]+b[3])/2
-        if rows and cy - rows[-1][0] < med*0.5: rows[-1][1].append(b)
-        else: rows.append([cy, [b]])
+        if rows and b[1] < rows[-1][0]:            # starts above the bottom of the current row
+            rows[-1][0] = max(rows[-1][0], b[3]); rows[-1][1].append(b)
+        else:
+            rows.append([b[3], [b]])
     return [b for _, r in rows for b in sorted(r, key=lambda b: b[0])]
 
 def main():
