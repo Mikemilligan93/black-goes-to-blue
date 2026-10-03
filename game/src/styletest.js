@@ -31,7 +31,7 @@
   window.addEventListener('keydown', function (e) {
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].indexOf(e.key) >= 0 && document.activeElement === play) e.preventDefault();
     keys[e.key.toLowerCase()] = true;
-    if (e.key.toLowerCase() === 'x' && p.attack <= 0 && p.hurt <= 0) p.attack = 0.28;
+    if (e.key.toLowerCase() === 'x' && p.throwT < 0 && p.hurt <= 0 && p.cool <= 0) { p.throwT = 0; p.released = false; }
     if (e.key.toLowerCase() === 'h' && p.hurt <= 0) { p.hurt = 0.6; p.vy = -420; p.vx = -p.facing * 260; p.ground = false; }
   });
   window.addEventListener('keyup', function (e) { keys[e.key.toLowerCase()] = false; });
@@ -39,13 +39,36 @@
 
   // ---------------- Player physics (prototype) ----------------
   var FLOOR = 410;
-  var p = { x: 640, y: FLOOR, vx: 0, vy: 0, facing: 1, ground: true, phase: 0, hurt: 0, attack: 0, jumpHeld: false };
+  var p = { x: 640, y: FLOOR, vx: 0, vy: 0, facing: 1, ground: true, phase: 0, hurt: 0, throwT: -1, released: false, cool: 0, out: {}, jumpHeld: false };
+  var balls = [], bits = [];
+  var THROW = { time: 0.32, speed: 640, up: 240, gravity: 900, radius: 9, cooldown: 0.12 };  // tuning
 
   function update(dt, mood) {
     var left = keys['arrowleft'] || keys['a'], right = keys['arrowright'] || keys['d'];
     var jump = keys[' '] || keys['w'] || keys['arrowup'];
     var max = 240 + mood * 80;
-    if (p.attack > 0) p.attack -= dt;
+    // ---- throwing ----
+    if (p.cool > 0) p.cool -= dt;
+    if (p.throwT >= 0) {
+      p.throwT += dt / THROW.time;
+      if (!p.released && p.throwT >= Art.RELEASE && p.out.hand) {
+        balls.push({ x: p.out.hand.x, y: p.out.hand.y, vx: p.facing * THROW.speed + p.vx * 0.5, vy: -THROW.up, rot: 0, spin: p.facing * 14 });
+        p.released = true;
+      }
+      if (p.throwT > 1) { p.throwT = -1; p.cool = THROW.cooldown; }
+    }
+    balls = balls.filter(function (b) {
+      b.vy += THROW.gravity * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.rot += b.spin * dt;
+      if (b.y >= FLOOR - THROW.radius) {   // burst into paper bits
+        for (var i = 0; i < 7; i++) bits.push({ x: b.x, y: FLOOR - 4, vx: (Math.random() - 0.5) * 260, vy: -120 - Math.random() * 200, rot: Math.random() * 6, spin: (Math.random() - 0.5) * 20, life: 1 });
+        return false;
+      }
+      return b.x > -20 && b.x < 1300;
+    });
+    bits = bits.filter(function (b) {
+      b.vy += 900 * dt; b.x += b.vx * dt; b.y = Math.min(FLOOR - 2, b.y + b.vy * dt); b.rot += b.spin * dt; b.life -= dt * 1.6;
+      return b.life > 0;
+    });
     if (p.hurt > 0) { p.hurt -= dt; }
     else {
       var dir = (right ? 1 : 0) - (left ? 1 : 0);
@@ -156,14 +179,16 @@
   var lineup = document.getElementById('lineup'), lctx = lineup.getContext('2d');
   function drawLineup(t) {
     lctx.fillStyle = Art.PAL.paper[0]; lctx.fillRect(0, 0, 1280, 350);
-    var poses = ['idle', 'walk', 'jump', 'hurt', 'attack'];
+    var poses = ['idle', 'walk', 'jump', 'hurt', 'throw'];
     [0, 1].forEach(function (side) {
       var lv = {}; groups.forEach(function (g) { lv[g] = side; }); Art.levelsOverride = lv;
       lctx.fillStyle = INK; lctx.font = '700 22px "Playfair Display", serif'; lctx.textAlign = 'center';
       lctx.fillText(side ? 'Recovered (all colour, mood 1)' : 'Burnt out (grey, mood 0)', 320 + side * 640, 34);
       poses.forEach(function (pose, i) {
         var x = 76 + side * 640 + i * 122, vy = pose === 'jump' ? Math.sin(t * 2.5) * 900 : 0;
-        Art.drawPuppet(lctx, x, pose === 'jump' ? 285 : 305, { pose: pose, t: t, phase: t * 9, vy: vy, facing: 1, mood: side });
+        var tt = pose === 'throw' ? (t * 0.8) % 1.4 : undefined;
+        Art.drawPuppet(lctx, x, pose === 'jump' ? 285 : 305, { pose: pose === 'throw' ? 'idle' : pose, t: t, phase: t * 9, vy: vy, facing: 1, mood: side,
+          throwT: tt !== undefined && tt <= 1 ? tt : undefined });
         lctx.font = '16px "Playfair Display", serif'; lctx.fillStyle = '#6E6A62';
         lctx.fillText(pose, x, 338);
       });
@@ -212,8 +237,11 @@
 
     update(dt, mood);
     world(ctx, t);
-    var pose = p.hurt > 0 ? 'hurt' : p.attack > 0 ? 'attack' : !p.ground ? 'jump' : Math.abs(p.vx) > 20 ? 'walk' : 'idle';
-    Art.drawPuppet(ctx, p.x, p.y, { pose: pose, t: t, phase: p.phase, vy: p.vy, facing: p.facing, mood: mood });
+    var pose = p.hurt > 0 ? 'hurt' : !p.ground ? 'jump' : Math.abs(p.vx) > 20 ? 'walk' : 'idle';
+    Art.drawPuppet(ctx, p.x, p.y, { pose: pose, t: t, phase: p.phase, vy: p.vy, facing: p.facing, mood: mood,
+      throwT: p.throwT >= 0 ? p.throwT : undefined, out: p.out });
+    balls.forEach(function (b) { Art.drawPaperBall(ctx, b.x, b.y, THROW.radius, b.rot); });
+    Art.drawPaperBits(ctx, bits);
     if (filmEl.checked) film(ctx, 1280, 480, t);
     drawLineup(t);
     requestAnimationFrame(frame);

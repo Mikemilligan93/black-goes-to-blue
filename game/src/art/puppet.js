@@ -1,7 +1,9 @@
 // ============================================================
 //  PLAYER PUPPET - painted Nano Banana parts + rubber-hose limbs drawn in code.
 //  Art.drawPuppet(ctx, x, y, s)   (x, y = point between the feet, on the ground)
-//    s.pose   : 'idle' | 'walk' | 'jump' | 'hurt' | 'attack'
+//    s.pose   : 'idle' | 'walk' | 'jump' | 'hurt'
+//    s.throwT : 0..1 progress of a paper-ball throw (works with any pose), or undefined
+//    s.out    : optional object; receives out.hand = world position of the throwing hand
 //    s.t      : time in seconds          s.phase : walk cycle phase
 //    s.vy     : vertical speed           s.facing: 1 right, -1 left
 //    s.mood   : 0 burnt out .. 1 recovered   s.scale : size multiplier
@@ -25,7 +27,10 @@ Art.PUPPET = {
   shoe:  { scale: 0.58, ankle: [80, 30], sole: 160 },
   leg:   { len: 52, width: 15, cuff: 18, spread: 3.5, top: 6 },  // top: how far the legs start up inside the trousers
   arm:   { len: 46, width: 12, sleeve: 0.55 },
+  ball:  9,                         // paper ball radius in the hand
 };
+
+Art.RELEASE = 0.45;               // throw progress at which the ball leaves the hand
 
 Art.PUPPET_PARTS = ['body_torso', 'body_glove_relaxed', 'body_glove_fist', 'body_glove_open', 'body_shoe',
   'heads_tired', 'heads_tired_blink', 'heads_neutral', 'heads_neutral_blink', 'heads_happy',
@@ -94,7 +99,7 @@ Art.PUPPET_PARTS = ['body_torso', 'body_glove_relaxed', 'body_glove_fist', 'body
     var P = Art.PUPPET, S = P.size;
     var t = s.t || 0, m = clamp(s.mood === undefined ? 0 : s.mood, 0, 1), slump = 1 - m;
     var pose = s.pose || 'idle', ph = s.phase || 0, vy = s.vy || 0;
-    var hurt = pose === 'hurt', attack = pose === 'attack';
+    var hurt = pose === 'hurt', thr = s.throwT, throwing = typeof thr === 'number' && thr >= 0 && thr <= 1 && !hurt;
 
     ctx.save();
     ctx.translate(x, y);
@@ -105,7 +110,7 @@ Art.PUPPET_PARTS = ['body_torso', 'body_glove_relaxed', 'body_glove_fist', 'body
 
     var breathe = Math.sin(t * (1.6 + m * 1.4));
     var bob = pose === 'walk' ? -Math.abs(Math.sin(ph)) * (3 + m * 4) : breathe * 1.2;
-    var lean = slump * 0.13 + (pose === 'walk' ? 0.05 : 0) - (hurt ? 0.22 : 0) + (attack ? 0.12 : 0);
+    var lean = slump * 0.13 + (pose === 'walk' ? 0.05 : 0) - (hurt ? 0.22 : 0) + (throwing ? (thr < 0.35 ? -0.08 * thr / 0.35 : 0.14 * (1 - thr)) : 0);
 
     var shoeS = S * P.shoe.scale, ankleH = (P.shoe.sole - P.shoe.ankle[1]) * shoeS;
     var hip = { x: 0, y: -(ankleH + P.leg.len * 0.94) + bob };
@@ -120,7 +125,7 @@ Art.PUPPET_PARTS = ['body_torso', 'body_glove_relaxed', 'body_glove_fist', 'body
       if (pose === 'walk') { ax = hx + Math.sin(a) * (13 + m * 5); ay = -ankleH - Math.max(0, Math.cos(a)) * (6 + m * 6); tilt = Math.max(0, Math.cos(a)) * 0.25 - 0.05; }
       else if (pose === 'jump') { ax = hx + (vy < 0 ? (i ? 8 : -4) : (i ? 5 : -8)); ay = -ankleH - (vy < 0 ? 14 + i * 5 : 4); tilt = vy < 0 ? 0.3 : -0.1; }
       else if (hurt) { ax = hx - 4 + i * 10; ay = -ankleH - 2; tilt = -0.1; }
-      else if (attack) { ax = hx + (i ? 15 : -13); ay = -ankleH; }
+      else if (throwing) { ax = hx + (i ? 14 : -12); ay = -ankleH; }
       else { ax = hx + (i ? 6 : -4); ay = -ankleH; }
       legs.push({ L: limb(hx, hip.y - P.leg.top, ax, ay, P.leg.len + P.leg.top, -1), tilt: tilt });
     }
@@ -132,13 +137,20 @@ Art.PUPPET_PARTS = ['body_torso', 'body_glove_relaxed', 'body_glove_fist', 'body
       if (pose === 'walk') { hx2 = r.x + Math.sin(b) * (11 + m * 7); hy2 = r.y + AL * 0.9 + slump * 4 - Math.abs(Math.cos(b)) * 2; }
       else if (pose === 'jump') { glove = 'open'; if (j) { hx2 = r.x + 32; hy2 = r.y + AL * 0.35; } else { hx2 = r.x - 20; hy2 = vy < 0 ? r.y - AL * 0.55 : r.y + 2; } }  // front hand forward and low, clear of the face
       else if (hurt) { glove = 'open'; hx2 = r.x + (j ? 30 : -26); hy2 = r.y - AL * (j ? 0.2 : 0.45) + Math.sin(t * 30) * 3; }
-      else if (attack) { if (j) { glove = 'fist'; hx2 = r.x + AL * 0.98; hy2 = r.y + 6; } else { hx2 = r.x - 10; hy2 = r.y + AL * 0.7; } }
       else { hx2 = r.x + (j ? 4 : -2) + breathe; hy2 = r.y + AL * 0.92 + slump * 5; }
-      arms.push({ L: limb(r.x, r.y, hx2, hy2, AL, 1), glove: glove });
+      if (throwing) {   // side-arm throw: wind back, whip forward, follow through
+        if (j) {
+          var bk = { x: r.x - AL * 0.8, y: r.y - 4 }, fw = { x: r.x + AL * 0.95, y: r.y - 8 }, e;
+          if (thr < 0.35) { e = ease(thr / 0.35); hx2 += (bk.x - hx2) * e; hy2 += (bk.y - hy2) * e; glove = 'fist'; }
+          else if (thr < 0.5) { e = ease((thr - 0.35) / 0.15); hx2 = bk.x + (fw.x - bk.x) * e; hy2 = bk.y + (fw.y - bk.y) * e; glove = thr < Art.RELEASE ? 'fist' : 'open'; }
+          else { e = (thr - 0.5) / 0.5; hx2 = fw.x - e * 6; hy2 = fw.y + e * AL * 0.5; glove = 'open'; }
+        } else { hx2 = r.x + 10; hy2 = r.y + AL * 0.6; glove = 'relaxed'; }
+      }
+      arms.push({ L: limb(r.x, r.y, hx2, hy2, AL, 1), glove: glove, ball: throwing && j === 1 && thr < Art.RELEASE });
     }
 
     // ---- head choice ----
-    var face = s.face || (hurt ? 'hurt' : attack ? 'determined' : (pose === 'jump' && vy > 350) ? 'surprised'
+    var face = s.face || (hurt ? 'hurt' : throwing ? 'determined' : (pose === 'jump' && vy > 350) ? 'surprised'
       : m < 0.4 ? 'tired' : m < 0.75 ? 'neutral' : 'happy');
     if ((t % 3.7) < 0.13) face = face === 'tired' ? 'tired_blink' : (face === 'neutral' || face === 'happy') ? 'neutral_blink' : face;
 
@@ -159,6 +171,12 @@ Art.PUPPET_PARTS = ['body_torso', 'body_glove_relaxed', 'body_glove_fist', 'body
     Art.drawPainted(ctx, 'heads_' + face, c[0], c[1], S * P.head.scale);
     ctx.restore();
     arm(ctx, arms[1].L, P, arms[1].glove, 1);
+    if (arms[1].ball) { var ea = endAngle(arms[1].L); Art.drawPaperBall(ctx, arms[1].L.b[0] + Math.cos(ea) * 14, arms[1].L.b[1] + Math.sin(ea) * 14 - 4, P.ball, thr * 4); }
     ctx.restore();
+    if (s.out) {   // hand position in world coordinates (for spawning the projectile)
+      var sc = s.scale || 1, f = s.facing || 1;
+      s.out.hand = { x: x + f * sc * arms[1].L.b[0], y: y + sc * arms[1].L.b[1] };
+    }
   };
+  function ease(u) { return u * u * (3 - 2 * u); }
 })();
