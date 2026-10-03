@@ -16,3 +16,4 @@ Using the attached image as the exact style reference (thick black ink outlines,
 4. the same head dizzy and defeated, with spiral eyes and a lolling tongue,
 5. a small flying letter with a red wax seal, used as a projectile.
 Background: perfectly flat solid bright green (#00FF00), no texture, no shadows, no gradient. No people, no text, no letters of the alphabet, no numbers, no labels.
+```
