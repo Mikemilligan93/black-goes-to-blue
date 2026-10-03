@@ -15,7 +15,8 @@ window.addEventListener('error', function (e) {
 // When the game is opened by double-clicking index.html, the browser hides which file failed.
 // So we also check that every content file actually loaded, and name the one that did not.
 window.checkDataFiles = function () {
-  var files = [['TEXT', 'texts.js'], ['QUOTES', 'quotes.js'], ['CONFIG', 'config.js'], ['BOSSES', 'bosses.js']];
+  var files = [['TEXT', 'texts.js'], ['QUOTES', 'quotes.js'], ['CONFIG', 'config.js'], ['BOSSES', 'bosses.js'],
+               ['LEGEND', 'levels/legend.js'], ['LEVEL_DATA', 'levels/level1.js']];
   for (var i = 0; i < files.length; i++) {
     if (typeof window[files[i][0]] === 'undefined') {
       var box = document.getElementById('error');

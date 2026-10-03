@@ -140,7 +140,7 @@ Art.PUPPET_PARTS = ['body_torso', 'body_glove_relaxed', 'body_glove_fist', 'body
       else { hx2 = r.x + (j ? 4 : -2) + breathe; hy2 = r.y + AL * 0.92 + slump * 5; }
       if (throwing) {   // side-arm throw: wind back, whip forward, follow through
         if (j) {
-          var bk = { x: r.x - AL * 0.8, y: r.y - 4 }, fw = { x: r.x + AL * 0.95, y: r.y - 8 }, e;
+          var bk = { x: r.x - AL * 0.8, y: r.y - 4 }, fw = { x: r.x + AL * 0.95, y: r.y + 18 }, e;
           if (thr < 0.35) { e = ease(thr / 0.35); hx2 += (bk.x - hx2) * e; hy2 += (bk.y - hy2) * e; glove = 'fist'; }
           else if (thr < 0.5) { e = ease((thr - 0.35) / 0.15); hx2 = bk.x + (fw.x - bk.x) * e; hy2 = bk.y + (fw.y - bk.y) * e; glove = thr < Art.RELEASE ? 'fist' : 'open'; }
           else { e = (thr - 0.5) / 0.5; hx2 = fw.x - e * 6; hy2 = fw.y + e * AL * 0.5; glove = 'open'; }

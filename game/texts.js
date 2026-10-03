@@ -15,6 +15,23 @@ window.TEXT = {
 
   // --- General ---
   PAUSED:        "Paused",
+  PAUSE_HINT:    "Press Esc to continue",
   LOADING:       "Loading...",
+  SOUND_OFF:     "Sound off",
+  SOUND_ON:      "Sound on",
+
+  // --- In the level ---
+  HUD_HEALTH:    "Mental health",
+  HUD_SCORE:     "Score",
+  CHECKPOINT:    "A sip of water. Feeling a bit better.",
+  FELL:          "Oops! Back to the last checkpoint.",
+  EXHAUSTED:     "Too much at once. Take a breath and try again.",
+
+  // --- Level names ---
+  LEVEL1_NAME:   "Level 1 · Monday. Again.",
+
+  // --- End of level ---
+  LEVEL_DONE:    "Level complete!",
+  PRESS_CONTINUE:"Press Space to continue",
 
 };
