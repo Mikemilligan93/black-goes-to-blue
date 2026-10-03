@@ -50,6 +50,8 @@ window.Level = (function () {
           L.enemies.push(Actors.makeEnemy(x + T / 2, bottom, def.kind));
         } else if (def.type === 'start') {
           L.start = { x: x + T / 2, y: bottom };
+        } else if (def.type === 'boss') {
+          L.bossSpot = { x: x, floor: bottom, boss: def.boss };
         } else if (def.type === 'exit') {
           L.exit = { x: x, y: bottom - def.h * T, w: def.w * T, h: def.h * T };
         }
@@ -190,6 +192,7 @@ window.Level = (function () {
     var names = [LEVEL_DATA[id].background];
     Object.keys(LEGEND).forEach(function (k) { if (LEGEND[k].art) names.push(LEGEND[k].art); });
     names.push('props_envelope', 'props_envelope_hit');
+    Object.keys(window.Bosses || {}).forEach(function (k) { names = names.concat(Bosses[k].art); });
     return names.filter(function (n) { return window.ART_MANIFEST && ART_MANIFEST[n]; });
   }
 

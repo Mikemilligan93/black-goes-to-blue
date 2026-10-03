@@ -38,12 +38,12 @@ window.UI = (function () {
     text(ctx, String(G.score).padStart(6, '0'), CONFIG.width - 38, 78, 26, { align: 'right' });
   }
 
-  function banner(ctx, title, sub, alpha) {
+  function banner(ctx, title, sub, alpha, subColor) {
     var W = CONFIG.width, H = CONFIG.height;
     ctx.save(); ctx.globalAlpha = alpha === undefined ? 1 : alpha;
     panel(ctx, W / 2 - 360, H / 2 - 90, 720, sub ? 170 : 120);
     text(ctx, title, W / 2, H / 2 - 10, 46, { align: 'center', font: TITLE, weight: '400' });
-    if (sub) text(ctx, sub, W / 2, H / 2 + 50, 24, { align: 'center', weight: '400' });
+    if (sub) text(ctx, sub, W / 2, H / 2 + 50, subColor ? 34 : 24, { align: 'center', weight: subColor ? '700' : '400', color: subColor });
     ctx.restore();
   }
 
@@ -72,5 +72,58 @@ window.UI = (function () {
     ctx.restore();
   }
 
-  return { hud: hud, banner: banner, film: film, text: text, panel: panel, resetBar: function () { shown = null; } };
+  function wrap(ctx, s, maxW) {
+    var words = s.split(' '), lines = [], line = '';
+    words.forEach(function (w) {
+      var test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test;
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function bossBar(ctx, name, k) {
+    var W = CONFIG.width, w = 520, x = (W - w) / 2;
+    panel(ctx, x - 18, 14, w + 36, 74);
+    text(ctx, name, W / 2, 44, 24, { align: 'center', font: TITLE, weight: '400' });
+    ctx.beginPath(); ctx.roundRect(x, 56, w, 16, 8); ctx.fillStyle = '#B9B2A4'; ctx.fill();
+    if (k > 0) { ctx.beginPath(); ctx.roundRect(x, 56, Math.max(16, w * k), 16, 8); ctx.fillStyle = '#C8423B'; ctx.fill(); }
+    ctx.beginPath(); ctx.roundRect(x, 56, w, 16, 8); ctx.lineWidth = 3; ctx.strokeStyle = INK; ctx.stroke();
+  }
+
+  // 1930s intertitle: dark card, cream ornamental border, centred italic text
+  function storyCard(ctx, s, t, showHint) {
+    var W = CONFIG.width, H = CONFIG.height, CREAM = '#EFE6CF';
+    ctx.fillStyle = '#16120E'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = CREAM; ctx.lineWidth = 3; ctx.strokeRect(60, 50, W - 120, H - 100);
+    ctx.lineWidth = 1.5; ctx.strokeRect(74, 64, W - 148, H - 128);
+    [[74, 64], [W - 74, 64], [74, H - 64], [W - 74, H - 64]].forEach(function (c) {   // corner flourishes
+      ctx.beginPath(); ctx.arc(c[0], c[1], 14, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(c[0], c[1], 5, 0, Math.PI * 2); ctx.fillStyle = CREAM; ctx.fill();
+    });
+    ctx.font = 'italic 400 42px ' + BODY; ctx.textAlign = 'center'; ctx.fillStyle = CREAM;
+    var lines = wrap(ctx, s, W - 340), y0 = H / 2 - (lines.length - 1) * 30;
+    ctx.globalAlpha = Math.min(1, t * 1.5);
+    lines.forEach(function (ln, i) { ctx.fillText(ln, W / 2, y0 + i * 60); });
+    ctx.globalAlpha = 1;
+    if (showHint && Math.floor(t / 0.6) % 2 === 0) text(ctx, TEXT.PRESS_CONTINUE, W / 2, H - 100, 22, { align: 'center', weight: '400', color: '#B8AE96' });
+  }
+
+  // quote card: paper, heading, quote, source
+  function quoteCard(ctx, q, t, showHint) {
+    var W = CONFIG.width, H = CONFIG.height;
+    ctx.fillStyle = '#E9DFC7'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.strokeRect(70, 60, W - 140, H - 120);
+    text(ctx, TEXT.QUOTE_HEADING, W / 2, 150, 28, { align: 'center', font: TITLE, weight: '400' });
+    ctx.globalAlpha = Math.min(1, t * 1.2);
+    ctx.font = 'italic 400 40px ' + BODY; ctx.textAlign = 'center'; ctx.fillStyle = INK;
+    var lines = wrap(ctx, '\u201C' + q.text + '\u201D', W - 320), y0 = H / 2 - (lines.length - 1) * 28 - 10;
+    lines.forEach(function (ln, i) { ctx.fillText(ln, W / 2, y0 + i * 56); });
+    var src = '\u2014 ' + q.author + ', ' + q.work + ' ' + q.section + (q.translator ? '  (tr. ' + q.translator + ')' : '');
+    text(ctx, src, W / 2, y0 + lines.length * 56 + 30, 24, { align: 'center', weight: '400' });
+    ctx.globalAlpha = 1;
+    if (showHint && Math.floor(t / 0.6) % 2 === 0) text(ctx, TEXT.PRESS_CONTINUE, W / 2, H - 100, 22, { align: 'center', weight: '400', color: '#6E6A62' });
+  }
+
+  return { hud: hud, bossBar: bossBar, storyCard: storyCard, quoteCard: quoteCard, banner: banner, film: film, text: text, panel: panel, resetBar: function () { shown = null; } };
 })();

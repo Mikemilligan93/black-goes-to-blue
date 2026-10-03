@@ -12,11 +12,12 @@ window.LEGEND = {
   'D': { type: 'prop', art: 'props_desk',    w: 4,   h: 2,   solid: 'oneway' },
   'F': { type: 'prop', art: 'props_cabinet', w: 2,   h: 3.5, solid: 'solid' },
   'S': { type: 'prop', art: 'props_shelf',   w: 3,   h: 2.5, solid: 'solid' },
-  'B': { type: 'prop', art: 'props_boxes',   w: 2,   h: 2,   solid: 'solid' },
-  'c': { type: 'hazard', art: 'props_coffee', w: 2,  h: 0.6, damage: 'coffee' },
-  'p': { type: 'hazard', art: 'props_papers', w: 2,  h: 1.2, damage: 'papers' },
+  'B': { type: 'prop', art: 'props_boxes',   w: 2,   h: 2.5, solid: 'solid' },
+  'c': { type: 'hazard', art: 'props_coffee', w: 2,  h: 1,   damage: 'coffee' },
+  'p': { type: 'hazard', art: 'props_papers', w: 2,  h: 1.6, damage: 'papers' },
   'C': { type: 'checkpoint', art: 'props_cooler', w: 1.5, h: 3 },
   'E': { type: 'enemy', kind: 'envelope' },
   'P': { type: 'start' },
-  'X': { type: 'exit', w: 2, h: 4 },
+  'X': { type: 'exit', w: 2, h: 4 },             // exit door (levels without a boss)
+  'H': { type: 'boss', boss: 'hydra' },          // boss arena starts here (one screen wide)
 };

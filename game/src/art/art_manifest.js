@@ -44,6 +44,51 @@ window.ART_MANIFEST = {
    "blue"
   ]
  },
+ "boss_hydra_body": {
+  "w": 668,
+  "h": 468,
+  "groups": [
+   "red",
+   "peach",
+   "gold"
+  ]
+ },
+ "boss_hydra_head_dizzy": {
+  "w": 360,
+  "h": 284,
+  "groups": [
+   "red",
+   "peach",
+   "gold"
+  ]
+ },
+ "boss_hydra_head_open": {
+  "w": 356,
+  "h": 340,
+  "groups": [
+   "red",
+   "peach",
+   "gold"
+  ]
+ },
+ "boss_hydra_head_smug": {
+  "w": 360,
+  "h": 296,
+  "groups": [
+   "red",
+   "peach",
+   "gold"
+  ]
+ },
+ "boss_hydra_letter": {
+  "w": 220,
+  "h": 160,
+  "groups": [
+   "red",
+   "peach",
+   "gold"
+  ]
+ },
  "heads_determined": {
   "w": 316,
   "h": 320,

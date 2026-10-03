@@ -149,6 +149,7 @@ window.Actors = (function () {
     G.balls = G.balls.filter(function (b) {
       b.vy += TH.gravity * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.rot += b.spin * dt;
       var bb = { x: b.x - r, y: b.y - r, w: r * 2, h: r * 2 };
+      if (G.boss && Bosses[G.boss.kind].hit(G.boss, b, G)) { Actors.burst(G, b.x, b.y, 5); return false; }
       for (var i = 0; i < L.enemies.length; i++) {
         var e = L.enemies[i];
         if (e.dead || !overlap(bb, boxOf(e))) continue;

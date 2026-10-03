@@ -24,12 +24,12 @@
 
   // ---------------- game state ----------------
   var G = { state: 'loading', t: 0, score: 0, levelId: 'level1', L: null, player: null, cam: { x: 0, y: 0 },
-            balls: [], bits: [], popups: [], introT: 0 };
+            balls: [], bits: [], popups: [], introT: 0, boss: null, camLock: null, cardT: 0, card: null, vt: 0 };
   window.G = G;   // handy for debugging in the browser console
 
   function startLevel(id) {
     G.levelId = id; G.L = Level.build(id); G.player = Actors.makePlayer(G.L.start.x, G.L.start.y);
-    G.balls = []; G.bits = []; G.popups = []; G.introT = 2.8; G.state = 'play';
+    G.balls = []; G.bits = []; G.popups = []; G.introT = 2.8; G.state = 'play'; G.boss = null; G.camLock = null;
     snapCamera(); UI.resetBar(); Sound.music(G.L.data.music);
   }
 
@@ -47,8 +47,46 @@
     p.vx = (fromX === null || fromX === undefined ? -p.facing : Math.sign(p.x - fromX) || -p.facing) * CONFIG.enemy.knockback;
   };
 
+  // story / quote cards between levels
+  function showCard(card) { G.card = card; G.cardT = 0; G.state = 'card'; }
+  function nextAfterCard() {
+    var c = G.card;
+    if (c.then) c.then();
+  }
+  function newGame() {
+    G.score = 0; GROUPS.forEach(function (g) { target[g] = 0; Art.levels[g] = 0; });
+    var first = 'level1', d = LEVEL_DATA[first];
+    if (d.storyBefore) showCard({ kind: 'story', text: TEXT[d.storyBefore], then: function () { startLevel(first); } });
+    else startLevel(first);
+  }
+  function startBoss(spot) {
+    var L = G.L, B = Bosses[spot.boss];
+    G.boss = B.create(spot); G.camLock = spot.x;
+    L.solids.push({ x: spot.x - 20, y: -2000, w: 20, h: 4000 });                              // walls close the arena
+    L.solids.push({ x: spot.x + B.settings().arenaWidth, y: -2000, w: 20, h: 4000 });
+    G.bossIntroT = 2.5; Sound.music('music_boss');
+  }
+  function levelWon() {
+    var d = G.L.data, B = G.boss ? Bosses[G.boss.kind].settings() : null;
+    var after = function () {
+      if (d.storyAfter) showCard({ kind: 'story', text: TEXT[d.storyAfter], then: goNext }); else goNext();
+    };
+    var q = B && QUOTES.filter(function (x) { return x.id === B.quote; })[0];
+    if (q) showCard({ kind: 'quote', quote: q, then: after }); else after();
+  }
+  function goNext() {
+    var next = G.L.data.next;
+    if (next && LEVEL_DATA[next]) {
+      var d = LEVEL_DATA[next];
+      if (d.storyBefore) showCard({ kind: 'story', text: TEXT[d.storyBefore], then: function () { startLevel(next); } });
+      else startLevel(next);
+    } else showCard({ kind: 'story', text: TEXT.TO_BE_CONTINUED, then: function () { G.state = 'title'; Sound.music('music_title'); } });
+  }
+  G.restoreColour = function (g) { target[g] = 1; };
+
   function camTarget() {
     var p = G.player, L = G.L;
+    if (G.camLock !== null) return { x: G.camLock, y: Math.max(0, Math.min(L.h - H, p.y - H * 0.62)) };
     return { x: Math.max(0, Math.min(L.w - W, p.x - W / 2 + p.facing * CONFIG.camera.lead)),
              y: Math.max(0, Math.min(L.h - H, p.y - H * 0.62)) };
   }
@@ -64,11 +102,22 @@
       if (Input.key('h')) showBoxes = !showBoxes;
     }
     GROUPS.forEach(function (g) {   // colours fade in and out smoothly
-      var d = target[g] - Art.levels[g]; Art.levels[g] += Math.sign(d) * Math.min(Math.abs(d), dt * 0.8);
+      var d = target[g] - Art.levels[g]; Art.levels[g] += Math.sign(d) * Math.min(Math.abs(d), dt * 0.5);
     });
 
     if (G.state === 'title') {
-      if (Input.hit('start')) { Sound.play('sfx_ui'); startLevel('level1'); }
+      if (Input.hit('start')) { Sound.play('sfx_ui'); newGame(); }
+    } else if (G.state === 'card') {
+      G.cardT += dt;
+      if (G.cardT > 1 && Input.hit('start')) { Sound.play('sfx_ui'); nextAfterCard(); }
+    } else if (G.state === 'victory') {
+      G.vt += dt;
+      Actors.updateBalls(G, G.L, dt);
+      Bosses[G.boss.kind].update(G.boss, G, dt);
+      G.player.vx = 0; G.player.throwT = -1;
+      Actors.moveBody(G.player, G.L.solids, dt); G.player.vy += CONFIG.player.gravity * dt;
+      if (G.vt > 1.6 && !G.colourGiven) { G.colourGiven = true; G.restoreColour(G.victoryColour); Sound.play('sfx_pickup'); }
+      if (G.vt > 6.5) { Sound.music(null); levelWon(); }
     } else if (G.state === 'play') {
       if (Input.hit('pause')) { G.state = 'paused'; return; }
       var L = G.L, p = G.player;
@@ -76,6 +125,14 @@
       Actors.updatePlayer(p, L, dt, G);
       L.enemies.forEach(function (e) { Actors.updateEnemy(e, L, dt, G); });
       Actors.updateBalls(G, L, dt);
+      if (L.bossSpot && !G.boss && p.x > L.bossSpot.x + 220) startBoss(L.bossSpot);
+      if (G.boss) {
+        G.bossIntroT = Math.max(0, G.bossIntroT - dt);
+        Bosses[G.boss.kind].update(G.boss, G, dt);
+        if (G.boss.state === 'dying' && G.state === 'play') {
+          G.state = 'victory'; G.vt = 0; G.colourGiven = false; G.victoryColour = Bosses[G.boss.kind].settings().colour;
+        }
+      }
       var pb = Actors.boxOf(p);
       L.hazards.forEach(function (z) { if (Actors.overlap(pb, z.hit)) G.hurtPlayer(CONFIG.health[z.damage] || 10, z.x + z.w / 2); });
       L.checkpoints.forEach(function (cp) {
@@ -86,13 +143,13 @@
           Actors.popup(G, cp.x + cp.w / 2, cp.y - 30, TEXT.CHECKPOINT, 2.5);
         }
       });
-      if (L.exit && Actors.overlap(pb, L.exit)) { G.state = 'done'; Sound.play('sfx_boss_defeat'); }
+      if (L.exit && Actors.overlap(pb, L.exit)) { G.state = 'done'; Sound.play('sfx_pickup'); }
       var c = camTarget(), k = Math.min(1, dt * CONFIG.camera.smooth);
       G.cam.x += (c.x - G.cam.x) * k; G.cam.y += (c.y - G.cam.y) * k;
     } else if (G.state === 'paused') {
       if (Input.hit('pause')) G.state = 'play';
     } else if (G.state === 'done') {
-      if (Input.hit('start')) { Sound.play('sfx_ui'); G.score = 0; G.state = 'title'; Sound.music('music_title'); }
+      if (Input.hit('start')) { Sound.play('sfx_ui'); levelWon(); }
     }
   }
 
@@ -104,6 +161,7 @@
     Level.drawBackground(ctx, L, cam);
     ctx.save(); ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
     Level.draw(ctx, L, G.t);
+    if (G.boss) Bosses[G.boss.kind].draw(ctx, G.boss, G.t);
     L.enemies.forEach(function (e) { Actors.drawEnemy(ctx, e, G.t); });
     Actors.drawPlayer(ctx, G.player, G.t, mood());
     G.balls.forEach(function (b) { Art.drawPaperBall(ctx, b.x, b.y, CONFIG.throw.radius, b.rot); });
@@ -119,6 +177,15 @@
     UI.film(ctx, G.t);
     UI.hud(ctx, G, dt);
     if (G.introT > 0) UI.banner(ctx, TEXT[L.data.name] || L.data.name, null, Math.min(1, G.introT));
+    if (G.boss && G.boss.state === 'fight') {
+      var B = Bosses[G.boss.kind];
+      UI.bossBar(ctx, TEXT[B.settings().name], B.remaining(G.boss) / B.total());
+      if (G.bossIntroT > 0) UI.banner(ctx, TEXT[B.settings().name], null, Math.min(1, G.bossIntroT));
+    }
+    if (G.state === 'victory' && G.vt > 2 && G.vt < 6.3) {
+      var k = Math.min(1, (G.vt - 2) * 2, (6.3 - G.vt) * 2);
+      UI.banner(ctx, TEXT.COLOUR_BACK, TEXT['COLOUR_' + G.victoryColour] || G.victoryColour, k, Art.GROUPS[G.victoryColour].hex);
+    }
   }
 
   var titleLevel = null;
@@ -136,6 +203,11 @@
     ctx.clearRect(0, 0, W, H);
     if (G.state === 'loading') { ctx.fillStyle = '#111'; ctx.fillRect(0, 0, W, H); UI.text(ctx, TEXT.LOADING, W / 2, H / 2, 32, { align: 'center', color: '#ddd' }); return; }
     if (G.state === 'title') return drawTitle();
+    if (G.state === 'card') {
+      if (G.card.kind === 'quote') UI.quoteCard(ctx, G.card.quote, G.cardT, G.cardT > 1);
+      else UI.storyCard(ctx, G.card.text, G.cardT, G.cardT > 1);
+      UI.film(ctx, G.t); return;
+    }
     drawWorld(dt);
     if (G.state === 'paused') UI.banner(ctx, TEXT.PAUSED, TEXT.PAUSE_HINT);
     if (G.state === 'done') UI.banner(ctx, TEXT.LEVEL_DONE, TEXT.HUD_SCORE + ': ' + G.score + '   ·   ' + TEXT.PRESS_CONTINUE);

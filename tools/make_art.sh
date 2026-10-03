@@ -6,4 +6,5 @@ I=game/images
 [ -f $I/char_body.png ] && python3 tools/cut_parts.py $I/char_body.png body torso glove_relaxed glove_fist glove_open shoe
 [ -f $I/props_platforms.png ] && python3 tools/cut_parts.py $I/props_platforms.png props desk cabinet shelf boxes
 [ -f $I/props_misc.png ] && python3 tools/cut_parts.py $I/props_misc.png props coffee papers cooler envelope envelope_hit
+[ -f $I/boss_hydra.png ] && python3 tools/cut_parts.py $I/boss_hydra.png boss_hydra body head_open head_smug head_dizzy letter
 python3 tools/build_art.py

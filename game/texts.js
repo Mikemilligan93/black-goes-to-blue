@@ -46,7 +46,15 @@ window.TEXT = {
   BOSS_4_NAME:   "The Frozen Piggy Bank",
   BOSS_5_NAME:   "The Overtime Owl",
   BOSS_6_NAME:   "Burnout",
-  COLOUR_BACK:   "A colour returns:",
+  COLOUR_BACK:   "A colour returns",
+  COLOUR_teal:   "Calm teal",
+  COLOUR_peach:  "Warmth",
+  COLOUR_green:  "Growth green",
+  COLOUR_gold:   "Sunny gold",
+  COLOUR_red:    "Courage red",
+  COLOUR_blue:   "Clear-sky blue",
+  QUOTE_HEADING: "A thought for the road",
+  TO_BE_CONTINUED: "To be continued...",
 
   // --- End of level ---
   LEVEL_DONE:    "Level complete!",

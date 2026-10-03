@@ -54,7 +54,7 @@ def components(mask, step=4, min_frac=0.002):
             near[2], near[3] = max(near[2], b[2]), max(near[3], b[3])
     return big
 
-def merge_close(boxes, gap=12):
+def merge_close(boxes, gap=2):
     # join small loose bits (a hair curl, a badge) to the part they belong to
     changed = True
     while changed:
